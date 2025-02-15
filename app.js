@@ -1,6 +1,6 @@
 import express from 'express';
 import session from 'express-session';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';  // Mantener solo esta importación
 import os from 'os';
 import macaddress from 'macaddress';
 import connectDB from './database.js';  // Conexión a MongoDB
@@ -48,9 +48,12 @@ app.get('/Welcome', (req, res) => {
     });
 });
 
-// Ruta de login
+// Eliminar esta importación duplicada
+// import { v4 as uuidv4 } from 'uuid';
+// import Session from './models/Session.js'; // Asegúrate de importar correctamente el modelo
+
 app.post('/login', async (req, res) => {
-    console.log(" Solicitud recibida en /login:", req.body);
+    console.log("Solicitud recibida en /login:", req.body);
 
     const { email, nickname, macAddress } = req.body;
 
@@ -60,14 +63,17 @@ app.post('/login', async (req, res) => {
     }
 
     try {
-        // Generar un ID único para la sesión
         const sessionID = uuidv4();
         const now = new Date();
-        const clientIp = await getClientIP();
+        const clientIp = await getClientIP(); // Asegúrate de que esta función esté definida
+
+        // Generar un userID basado en el email o nickname (puedes ajustarlo como prefieras)
+        const userID = email;  // O puedes usar nickname, dependiendo de tu lógica
 
         // Crear nueva sesión en la base de datos
         const newSession = new Session({
             sessionID,
+            userID,  // Asegúrate de incluir userID
             email,
             nickname,
             macAddress,
@@ -75,22 +81,23 @@ app.post('/login', async (req, res) => {
             serverIp: getLocalIp(),
             createdAt: now,
             lastAccessed: now,
-            status: "active"
+            status: "Activa" // Usa "Activa" en lugar de "active"
         });
 
-        await newSession.save();  // Guardar la sesión en MongoDB
+        await newSession.save();  
 
-        console.log(" Sesión creada en MongoDB:", newSession);
+        console.log("Sesión creada en MongoDB:", newSession);
 
         res.status(200).json({
             message: 'Se ha logueado de manera exitosa',
             sessionID,
         });
     } catch (error) {
-        console.error(" Error guardando la sesión en MongoDB:", error);
+        console.error("Error guardando la sesión en MongoDB:", error);
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
 
 // Ruta de logout
 app.post("/logout", async (req, res) => {
